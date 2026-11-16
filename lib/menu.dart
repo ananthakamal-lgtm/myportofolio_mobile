@@ -183,10 +183,10 @@ class MyHomePage extends StatelessWidget {
       // SafeArea dan SingleChildScrollView mencegah overflow pada layar kecil.
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
+              constraints: const BoxConstraints(maxWidth: 560),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -222,7 +222,7 @@ class MyHomePage extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 12.0),
+                  const SizedBox(height: 10.0),
 
                   // Kartu sambutan pemilik portofolio beserta akses cepat profil lengkap.
                   Card(
@@ -232,43 +232,55 @@ class MyHomePage extends StatelessWidget {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 14.0,
+                        horizontal: 14.0,
+                        vertical: 12.0,
                       ),
-                      child: Column(
+                      child: Row(
                         children: [
-                          const Text(
-                            'Selamat datang di MyPortfolio Mobile!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.0,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Selamat datang di MyPortfolio Mobile!',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 4.0),
+                                Text(
+                                  programStudi,
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 4.0),
-                          Text(
-                            programStudi,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13.0,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 10.0),
+                          const SizedBox(width: 8.0),
                           OutlinedButton.icon(
                             onPressed: () => _showOwnerProfileSheet(context),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                              visualDensity: VisualDensity.compact,
+                            ),
                             icon: const Icon(
                               Icons.account_circle_outlined,
                               size: 18,
                             ),
-                            label: const Text('Lihat Profil Pemilik'),
+                            label: const Text('Profil'),
                           ),
                         ],
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 16.0),
+                  const SizedBox(height: 12.0),
 
                   // Bagian menu aksi portofolio.
                   const Text(
@@ -288,23 +300,26 @@ class MyHomePage extends StatelessWidget {
                     ),
                   ),
 
-                  // GridView menampilkan kartu tombol dalam tata letak kisi 3 kolom.
-                  GridView.count(
-                    primary: false,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12.0,
-                      horizontal: 4.0,
+                  // Batasi lebar GridView agar ukuran kartu menu tetap proporsional di layar lebar.
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 380),
+                    child: GridView.count(
+                      primary: false,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10.0,
+                        horizontal: 4.0,
+                      ),
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.88,
+                      // shrinkWrap agar ukuran kisi menyesuaikan tinggi konten anak.
+                      shrinkWrap: true,
+                      children: items.map((ItemHomepage item) {
+                        return ItemCard(item);
+                      }).toList(),
                     ),
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    crossAxisCount: 3,
-                    childAspectRatio: 0.90,
-                    // shrinkWrap agar ukuran kisi menyesuaikan tinggi konten anak.
-                    shrinkWrap: true,
-                    children: items.map((ItemHomepage item) {
-                      return ItemCard(item);
-                    }).toList(),
                   ),
                 ],
               ),
@@ -338,27 +353,27 @@ class InfoCard extends StatelessWidget {
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 20.0, color: colorScheme.primary),
-              const SizedBox(height: 6.0),
+              Icon(icon, size: 19.0, color: colorScheme.primary),
+              const SizedBox(height: 4.0),
             ],
             Text(
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 13.0,
+                fontSize: 12.5,
               ),
             ),
-            const SizedBox(height: 6.0),
+            const SizedBox(height: 4.0),
             Text(
               content,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13.0),
+              style: const TextStyle(fontSize: 12.5),
             ),
           ],
         ),
@@ -480,7 +495,7 @@ class ItemCard extends StatelessWidget {
         onTap: () => _handleTap(context),
         onLongPress: () => _showItemDetailDialog(context),
         child: Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -488,9 +503,9 @@ class ItemCard extends StatelessWidget {
                 Icon(
                   item.icon,
                   color: Colors.white,
-                  size: 30.0,
+                  size: 28.0,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   item.name,
                   textAlign: TextAlign.center,
