@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
 
-  final String npm = "2406000001";
-  final String nama = "Burhan";
-  final String kelas = "PBP A";
+  final String npm = "2506656425";
+  final String nama = "Anantha Kamal Eirian";
+  final String kelas = "PBP D";
 
   final List<ItemHomepage> items = [
     ItemHomepage("Lihat Proyek", Icons.folder),
@@ -34,14 +34,36 @@ class MyHomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Baris horizontal untuk menampilkan 3 InfoCard secara sejajar.
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                InfoCard(title: 'NPM', content: npm),
-                InfoCard(title: 'Name', content: nama),
-                InfoCard(title: 'Class', content: kelas),
-              ],
+            // Baris horizontal untuk menampilkan 3 InfoCard secara sejajar dan simetris.
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: InfoCard(
+                      title: 'NPM',
+                      content: npm,
+                      icon: Icons.badge_outlined,
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: InfoCard(
+                      title: 'Name',
+                      content: nama,
+                      icon: Icons.person_outline,
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: InfoCard(
+                      title: 'Class',
+                      content: kelas,
+                      icon: Icons.school_outlined,
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 16.0),
@@ -84,31 +106,50 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
+/// Kartu informasi profil pemilik portofolio yang menampilkan ikon opsional,
+/// judul ([title]), dan isi ([content]) secara terpusat.
 class InfoCard extends StatelessWidget {
-  // Kartu informasi yang menampilkan judul (title) dan isi (content).
   final String title;
   final String content;
+  final IconData? icon;
 
-  const InfoCard({super.key, required this.title, required this.content});
+  const InfoCard({
+    super.key,
+    required this.title,
+    required this.content,
+    this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
-      // Memberikan efek bayangan kartu elevasi 2 unit.
       elevation: 2.0,
-      child: Container(
-        // Menyesuaikan lebar kartu dengan proporsi layar (dibagi 3.5).
-        width: MediaQuery.of(context).size.width / 3.5,
-        padding: const EdgeInsets.all(16.0),
-        // Menyusun teks title dan content secara vertikal.
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            if (icon != null) ...[
+              Icon(icon, size: 20.0, color: colorScheme.primary),
+              const SizedBox(height: 6.0),
+            ],
             Text(
               title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13.0,
+              ),
             ),
-            const SizedBox(height: 8.0),
-            Text(content),
+            const SizedBox(height: 6.0),
+            Text(
+              content,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13.0),
+            ),
           ],
         ),
       ),
