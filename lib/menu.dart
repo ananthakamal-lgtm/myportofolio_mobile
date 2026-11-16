@@ -8,9 +8,30 @@ class MyHomePage extends StatelessWidget {
   final String kelas = "PBP D";
 
   final List<ItemHomepage> items = [
-    ItemHomepage("Lihat Proyek", Icons.folder),
-    ItemHomepage("Tambah Proyek", Icons.add_circle),
-    ItemHomepage("Logout", Icons.logout),
+    ItemHomepage(
+      "Lihat Proyek",
+      Icons.folder_rounded,
+      Colors.blue.shade700,
+      subtitle: "Daftar karya",
+      detailDescription:
+          "Menampilkan koleksi proyek teknis yang terhubung dengan ekosistem portofolio web Django (/api/v1/projects/).",
+    ),
+    ItemHomepage(
+      "Tambah Proyek",
+      Icons.add_circle_rounded,
+      Colors.green.shade700,
+      subtitle: "Entri baru",
+      detailDescription:
+          "Membuka formulir untuk menambahkan proyek portofolio baru beserta deskripsi dan tech stack.",
+    ),
+    ItemHomepage(
+      "Logout",
+      Icons.logout_rounded,
+      Colors.red.shade600,
+      subtitle: "Keluar sesi",
+      detailDescription:
+          "Mengakhiri sesi autentikasi akun pengguna ketika integrasi login Django diaktifkan.",
+    ),
   ];
 
   @override
@@ -157,36 +178,120 @@ class InfoCard extends StatelessWidget {
   }
 }
 
+/// Model data untuk setiap tombol menu aksi pada halaman utama portofolio.
 class ItemHomepage {
   final String name;
   final IconData icon;
+  final Color color;
+  final String subtitle;
+  final String detailDescription;
 
-  ItemHomepage(this.name, this.icon);
+  ItemHomepage(
+    this.name,
+    this.icon,
+    this.color, {
+    this.subtitle = '',
+    this.detailDescription = '',
+  });
 }
 
+/// Kartu tombol menu interaktif yang menggunakan warna unik [ItemHomepage.color]
+/// dan memunculkan [SnackBar] serta pratinjau detail aksi saat ditekan.
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
 
   const ItemCard(this.item, {super.key});
 
+  void _showItemDetailDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: item.color.withValues(alpha: 0.14),
+                child: Icon(item.icon, color: item.color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  item.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            item.detailDescription.isNotEmpty
+                ? item.detailDescription
+                : 'Aksi menu ${item.name} pada aplikasi MyPortfolio Mobile.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handleTap(BuildContext context) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: item.color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: Row(
+            children: [
+              Icon(item.icon, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "Kamu telah menekan tombol ${item.name}!",
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'Detail',
+            textColor: Colors.white,
+            onPressed: () {
+              if (context.mounted) {
+                _showItemDetailDialog(context);
+              }
+            },
+          ),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
-      // Menggunakan warna sekunder dari skema tema aplikasi.
-      color: Theme.of(context).colorScheme.secondary,
-      borderRadius: BorderRadius.circular(12),
+      // Menggunakan warna unik dari atribut color pada model ItemHomepage.
+      color: item.color,
+      elevation: 2.0,
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        // Aksi ketika kartu ditekan oleh pengguna.
-        onTap: () {
-          // Menampilkan SnackBar dengan pesan interaktif.
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!"))
-            );
-        },
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _handleTap(context),
+        onLongPress: () => _showItemDetailDialog(context),
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(10),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -196,12 +301,26 @@ class ItemCard extends StatelessWidget {
                   color: Colors.white,
                   size: 30.0,
                 ),
-                const Padding(padding: EdgeInsets.all(3)),
+                const SizedBox(height: 6),
                 Text(
                   item.name,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                if (item.subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    item.subtitle,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.88),
+                      fontSize: 11.0,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
