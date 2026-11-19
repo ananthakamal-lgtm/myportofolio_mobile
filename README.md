@@ -23,6 +23,7 @@ Aplikasi ini menjadi pendamping mobile dari website portofolio pribadi berbasis 
 - **Kartu Menu Portofolio Berwarna (`ItemCard`)**: Menyediakan 3 tombol aksi (**Lihat Proyek**, **Tambah Proyek**, dan **Logout**) dengan warna latar unik dan kontras (Biru, Hijau, Merah) yang dimodelkan secara bersih pada kelas `ItemHomepage`.
 - **Umpan Balik Interaktif (`SnackBar` & Pratinjau Detail)**: Mengetuk kartu memunculkan `SnackBar` berwarna senada berisi pesan `"Kamu telah menekan tombol [Nama Tombol]!"` beserta aksi `Detail`, sedangkan menahan kartu (`onLongPress`) membuka dialog pratinjau fungsi fitur.
 - **Pratinjau Profil Pemilik**: Tombol profil pada `AppBar` dan kartu sambutan membuka *modal bottom sheet* berisi ringkasan bio serta modul ekosistem portofolio Django (*Projects*, *Experience*, *Achievements*).
+- **Navigasi Drawer & Routing Antarhalaman (`LeftDrawer` & `ProjectFormPage`)**: Menyediakan menu navigasi samping untuk berpindah antara halaman **Home** (`MyHomePage`) dan **Add Project** (`ProjectFormPage`) menggunakan `Navigator.pushReplacement`, serta navigasi `Navigator.push` dari tombol **Tambah Proyek** ke formulir tambah proyek dengan validasi input dan dialog ringkasan data.
 - **Tata Letak Responsif**: Menggunakan `SafeArea`, `SingleChildScrollView`, serta `ConstrainedBox` agar terbebas dari *overflow* baik di layar ponsel sempit (`360x800`) maupun layar lebar.
 
 ---
@@ -32,12 +33,17 @@ Aplikasi ini menjadi pendamping mobile dari website portofolio pribadi berbasis 
 ```text
 myportofolio_mobile/
 ├── lib/
-│   ├── main.dart          # Entry point aplikasi & konfigurasi tema MaterialApp
-│   └── menu.dart          # Halaman utama (MyHomePage), InfoCard, ItemHomepage, ItemCard
+│   ├── screens/
+│   │   ├── menu.dart           # Halaman utama (MyHomePage), InfoCard, dan model ItemHomepage
+│   │   └── project_form.dart   # Halaman formulir tambah proyek (ProjectFormPage) & validasi
+│   ├── widgets/
+│   │   ├── left_drawer.dart    # Drawer navigasi antarhalaman (Home & Add Project)
+│   │   └── project_card.dart   # Widget ItemCard interaktif dengan navigasi & SnackBar
+│   └── main.dart               # Entry point aplikasi & konfigurasi tema MaterialApp
 ├── test/
-│   └── widget_test.dart   # Pengujian widget otomatis (identitas, warna, SnackBar, modal)
-├── pubspec.yaml           # Deklarasi dependensi dan konfigurasi paket Flutter
-└── README.md              # Dokumentasi proyek, progres mingguan, refleksi, & AI disclosure
+│   └── widget_test.dart        # Pengujian widget otomatis (identitas, warna, navigasi, form)
+├── pubspec.yaml                # Deklarasi dependensi (termasuk material_ui) & konfigurasi paket
+└── README.md                   # Dokumentasi proyek, progres mingguan, refleksi, & AI disclosure
 ```
 
 ---
@@ -78,6 +84,7 @@ myportofolio_mobile/
 
 - **Tutorial 08 (Basic Flutter):** Inisialisasi proyek Flutter `myportofolio_mobile`, memisahkan widget halaman utama ke `lib/menu.dart` dari `lib/main.dart`, mengubah `MyHomePage` menjadi `StatelessWidget`, serta menyusun komponen awal `InfoCard` dan `ItemCard`.
 - **Individual Assignment 7 (Basic Flutter):** Mengganti identitas contoh menjadi data pribadi akurat, menambahkan atribut `Color color` pada `ItemHomepage`, menerapkan warna latar unik per tombol `ItemCard`, menyempurnakan tema Material 3 & interaktivitas UI/UX (modal profil pemilik dan dialog pratinjau aksi), memperluas pengujian di `test/widget_test.dart`, serta menyusun jawaban reflektif dan AI disclosure.
+- **Tutorial 09 (Flutter Navigation, Layouts, Forms, and Input Elements):** Menambahkan paket `material_ui` dan memigrasikan impor Material, membangun `LeftDrawer` (`lib/widgets/left_drawer.dart`) dan halaman formulir `ProjectFormPage` (`lib/screens/project_form.dart`) dengan validasi dan dialog ringkasan, menghubungkan navigasi `Navigator.push` pada tombol **Tambah Proyek**, merapikan struktur berkas ke dalam `lib/screens/` dan `lib/widgets/`, serta memperluas widget test.
 
 ---
 
