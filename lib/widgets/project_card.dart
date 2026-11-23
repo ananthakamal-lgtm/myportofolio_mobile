@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
-import 'package:myportofolio_mobile/screens/project_form.dart';
 
 /// Kartu tombol menu interaktif yang menggunakan warna unik [ItemHomepage.color]
 /// dan memunculkan [SnackBar] serta pratinjau detail aksi saat ditekan.
@@ -52,7 +51,8 @@ class ItemCard extends StatelessWidget {
   }
 
   void _handleTap(BuildContext context) {
-    final navigatesToForm = item.name == "Tambah Proyek";
+    final destinationBuilder = item.destinationBuilder;
+    final hasDestination = destinationBuilder != null;
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -76,7 +76,7 @@ class ItemCard extends StatelessWidget {
               ),
             ],
           ),
-          action: navigatesToForm
+          action: hasDestination
               ? null
               : SnackBarAction(
                   label: 'Detail',
@@ -90,13 +90,11 @@ class ItemCard extends StatelessWidget {
         ),
       );
 
-    // Navigasi ke halaman tambah proyek saat kartu Tambah Proyek ditekan.
-    if (navigatesToForm) {
+    // Navigasi menggunakan Navigator.push bila item memiliki halaman tujuan.
+    if (destinationBuilder != null) {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const ProjectFormPage(),
-        ),
+        MaterialPageRoute(builder: destinationBuilder),
       );
     }
   }
@@ -113,43 +111,47 @@ class ItemCard extends StatelessWidget {
         onTap: () => _handleTap(context),
         onLongPress: () => _showItemDetailDialog(context),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  item.icon,
-                  color: Colors.white,
-                  size: 28.0,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item.name,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13.0,
-                  ),
-                ),
-                if (item.subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    item.subtitle,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.88),
-                      fontSize: 11.0,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            children: [
+              Icon(
+                item.icon,
+                color: Colors.white,
+                size: 26.0,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12.5,
+                        height: 1.15,
+                      ),
                     ),
-                  ),
-                ],
-              ],
-            ),
+                    if (item.subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        item.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.88),
+                          fontSize: 10.5,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

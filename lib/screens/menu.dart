@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
 
@@ -32,6 +34,16 @@ class MyHomePage extends StatelessWidget {
       subtitle: "Entri baru",
       detailDescription:
           "Membuka formulir untuk menambahkan proyek portofolio baru beserta deskripsi dan tech stack.",
+      destinationBuilder: (context) => const ProjectFormPage(),
+    ),
+    ItemHomepage(
+      "Tambah Pengalaman",
+      Icons.work_history_rounded,
+      Colors.deepPurple.shade600,
+      subtitle: "Catat karier",
+      detailDescription:
+          "Membuka formulir untuk mencatat pengalaman kerja, magang, riset, atau organisasi sesuai model Experience Django.",
+      destinationBuilder: (context) => const ExperienceFormPage(),
     ),
     ItemHomepage(
       "Logout",
@@ -284,7 +296,7 @@ class MyHomePage extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 12.0),
+                  const SizedBox(height: 8.0),
 
                   // Bagian menu aksi portofolio.
                   const Text(
@@ -294,7 +306,7 @@ class MyHomePage extends StatelessWidget {
                       fontSize: 16.0,
                     ),
                   ),
-                  const SizedBox(height: 4.0),
+                  const SizedBox(height: 2.0),
                   Text(
                     'Ketuk kartu untuk aksi cepat atau tahan untuk pratinjau fitur',
                     textAlign: TextAlign.center,
@@ -304,20 +316,20 @@ class MyHomePage extends StatelessWidget {
                     ),
                   ),
 
-                  // Batasi lebar GridView agar ukuran kartu menu tetap proporsional di layar lebar.
+                  // Batasi lebar GridView agar kisi 2x2 tetap proporsional di layar lebar.
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 380),
                     child: GridView.count(
                       primary: false,
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
-                        vertical: 10.0,
+                        vertical: 8.0,
                         horizontal: 4.0,
                       ),
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
-                      crossAxisCount: 3,
-                      childAspectRatio: 0.88,
+                      crossAxisCount: 2,
+                      childAspectRatio: 2.15,
                       // shrinkWrap agar ukuran kisi menyesuaikan tinggi konten anak.
                       shrinkWrap: true,
                       children: items.map((ItemHomepage item) {
@@ -393,6 +405,7 @@ class ItemHomepage {
   final Color color;
   final String subtitle;
   final String detailDescription;
+  final WidgetBuilder? destinationBuilder;
 
   ItemHomepage(
     this.name,
@@ -400,5 +413,6 @@ class ItemHomepage {
     this.color, {
     this.subtitle = '',
     this.detailDescription = '',
+    this.destinationBuilder,
   });
 }
