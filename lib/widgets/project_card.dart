@@ -1,8 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 /// Kartu tombol menu interaktif yang menggunakan warna unik [ItemHomepage.color]
-/// dan memunculkan [SnackBar] serta pratinjau detail aksi saat ditekan.
+/// dan memunculkan [SnackBar] serta navigasi atau pratinjau detail saat ditekan.
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
 
@@ -50,11 +53,37 @@ class ItemCard extends StatelessWidget {
     );
   }
 
-  void _handleTap(BuildContext context) {
+  Future<void> _handleTap(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final destinationBuilder = item.destinationBuilder;
-    final hasDestination = destinationBuilder != null;
 
-    ScaffoldMessenger.of(context)
+    if (item.name == 'Logout') {
+      final authState = context.read<AuthState>();
+      if (authState.isLoggedIn) {
+        await authState.logout();
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: item.color,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: const Text(
+                'Berhasil logout!',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          );
+        return;
+      }
+    }
+
+    final hasDestination = destinationBuilder != null;
+    messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
@@ -70,7 +99,7 @@ class ItemCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  "Kamu telah menekan tombol ${item.name}!",
+                  'Kamu telah menekan tombol ${item.name}!',
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
@@ -90,13 +119,14 @@ class ItemCard extends StatelessWidget {
         ),
       );
 
-    // Navigasi menggunakan Navigator.push bila item memiliki halaman tujuan.
-    if (destinationBuilder != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: destinationBuilder),
-      );
+    if (destinationBuilder == null) return;
+
+    if (item.requiresAuth) {
+      final loggedIn = await ensureLoggedIn(context);
+      if (!loggedIn || !context.mounted) return;
     }
+
+    await navigator.push(MaterialPageRoute<void>(builder: destinationBuilder));
   }
 
   @override
@@ -114,11 +144,7 @@ class ItemCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           child: Row(
             children: [
-              Icon(
-                item.icon,
-                color: Colors.white,
-                size: 26.0,
-              ),
+              Icon(item.icon, color: Colors.white, size: 26.0),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(

@@ -80,9 +80,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
       prefixIcon: Icon(prefixIcon),
       filled: true,
       fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
     );
   }
 
@@ -276,8 +274,9 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                         child: Row(
                           children: [
                             CircleAvatar(
-                              backgroundColor:
-                                  colorScheme.primary.withValues(alpha: 0.12),
+                              backgroundColor: colorScheme.primary.withValues(
+                                alpha: 0.12,
+                              ),
                               child: Icon(
                                 Icons.work_history_rounded,
                                 color: colorScheme.primary,
@@ -359,8 +358,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                       maxLines: 4,
                       decoration: _buildInputDecoration(
                         labelText: 'Deskripsi Pengalaman',
-                        hintText:
-                            'Ceritakan peran, tanggung jawab, dan pencapaian utama...',
+                        hintText: 'Ceritakan peran, tanggung jawab, dan pencapaian utama...',
                         prefixIcon: Icons.description_outlined,
                       ),
                       validator: _validateDescription,
@@ -389,7 +387,10 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Icon(Icons.edit_calendar_outlined, size: 18),
+                                const Icon(
+                                  Icons.edit_calendar_outlined,
+                                  size: 18,
+                                ),
                               ],
                             ),
                           ),
@@ -480,8 +481,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
                       decoration: _buildInputDecoration(
                         labelText: 'URL Thumbnail (opsional)',
                         hintText: 'https://example.com/gambar.png',
-                        helperText:
-                            'Kosongkan jika tidak ada, atau gunakan URL http/https yang valid.',
+                        helperText: 'Kosongkan jika tidak ada, atau gunakan URL http/https yang valid.',
                         prefixIcon: Icons.link_rounded,
                       ),
                       validator: _validateThumbnailUrl,

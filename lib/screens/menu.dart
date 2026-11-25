@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
 
@@ -24,25 +25,24 @@ class MyHomePage extends StatelessWidget {
       Icons.folder_rounded,
       Colors.blue.shade700,
       subtitle: "Daftar karya",
-      detailDescription:
-          "Menampilkan koleksi proyek teknis yang terhubung dengan ekosistem portofolio web Django (/api/v1/projects/).",
+      detailDescription: "Menampilkan koleksi proyek teknis yang terhubung dengan ekosistem portofolio web Django (/api/v1/projects/).",
+      destinationBuilder: (context) => const ProjectListScreen(),
     ),
     ItemHomepage(
       "Tambah Proyek",
       Icons.add_circle_rounded,
       Colors.green.shade700,
       subtitle: "Entri baru",
-      detailDescription:
-          "Membuka formulir untuk menambahkan proyek portofolio baru beserta deskripsi dan tech stack.",
+      detailDescription: "Membuka formulir untuk menambahkan proyek portofolio baru beserta deskripsi dan tech stack.",
       destinationBuilder: (context) => const ProjectFormPage(),
+      requiresAuth: true,
     ),
     ItemHomepage(
       "Tambah Pengalaman",
       Icons.work_history_rounded,
       Colors.deepPurple.shade600,
       subtitle: "Catat karier",
-      detailDescription:
-          "Membuka formulir untuk mencatat pengalaman kerja, magang, riset, atau organisasi sesuai model Experience Django.",
+      detailDescription: "Membuka formulir untuk mencatat pengalaman kerja, magang, riset, atau organisasi sesuai model Experience Django.",
       destinationBuilder: (context) => const ExperienceFormPage(),
     ),
     ItemHomepage(
@@ -50,8 +50,7 @@ class MyHomePage extends StatelessWidget {
       Icons.logout_rounded,
       Colors.red.shade600,
       subtitle: "Keluar sesi",
-      detailDescription:
-          "Mengakhiri sesi autentikasi akun pengguna ketika integrasi login Django diaktifkan.",
+      detailDescription: "Mengakhiri sesi autentikasi akun pengguna ketika integrasi login Django diaktifkan.",
     ),
   ];
 
@@ -161,10 +160,7 @@ class MyHomePage extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: Colors.black54),
         const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
+        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600)),
         Text(value),
       ],
     );
@@ -180,10 +176,7 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'MyPortfolio',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: colorScheme.primary,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -406,6 +399,7 @@ class ItemHomepage {
   final String subtitle;
   final String detailDescription;
   final WidgetBuilder? destinationBuilder;
+  final bool requiresAuth;
 
   ItemHomepage(
     this.name,
@@ -414,5 +408,6 @@ class ItemHomepage {
     this.subtitle = '',
     this.detailDescription = '',
     this.destinationBuilder,
+    this.requiresAuth = false,
   });
 }

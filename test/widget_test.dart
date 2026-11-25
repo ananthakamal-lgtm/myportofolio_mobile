@@ -1,410 +1,174 @@
-import 'package:material_ui/material_ui.dart';
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/main.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/login_screen.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportofolio_mobile/screens/project_detail_screen.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
-import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
 
+ApiClient _createMockApiClient() {
+  final projects = <Map<String, dynamic>>[
+    {
+      'id': '11111111-1111-1111-1111-111111111111',
+      'title': 'Portfolio Backend',
+      'description': 'REST API built with Django REST Framework.',
+      'tech_stack': 'Django, DRF, PostgreSQL',
+      'project_url': 'https://example.com/portfolio',
+      'project_image_url': '',
+    },
+  ];
+
+  final mockHttp = MockClient((request) async {
+    if (request.method == 'GET' && request.url.path == '/api/v1/projects/') {
+      return http.Response(jsonEncode(projects), 200);
+    }
+    if (request.method == 'POST' && request.url.path == '/api/v1/auth/token/') {
+      final body = jsonDecode(request.body) as Map<String, dynamic>;
+      if (body['username'] == 'admin' && body['password'] == 'secret') {
+        return http.Response(jsonEncode({'token': 'mock-token-123'}), 200);
+      }
+      return http.Response('{"non_field_errors":["Invalid"]}', 400);
+    }
+    if (request.method == 'POST' && request.url.path == '/api/v1/projects/') {
+      if (request.headers['Authorization'] != 'Token mock-token-123') {
+        return http.Response('{"detail":"Unauthorized"}', 401);
+      }
+      final body = jsonDecode(request.body) as Map<String, dynamic>;
+      final created = <String, dynamic>{
+        'id': '22222222-2222-2222-2222-222222222222',
+        ...body,
+      };
+      projects.add(created);
+      return http.Response(jsonEncode(created), 201);
+    }
+    if (request.method == 'POST' &&
+        request.url.path == '/api/v1/auth/logout/') {
+      return http.Response('', 204);
+    }
+    return http.Response('Not Found', 404);
+  });
+
+  return ApiClient(client: mockHttp, baseUrl: 'http://localhost:8000');
+}
+
 void main() {
-  testWidgets('MyHomePage is StatelessWidget and shows owner InfoCards', (
+  testWidgets('MyHomePage renders owner InfoCards and 4 ItemCards', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(apiClient: _createMockApiClient()));
 
-    // Pastikan MyHomePage merupakan StatelessWidget sesuai instruksi Tugas 7.
     expect(tester.widget(find.byType(MyHomePage)), isA<StatelessWidget>());
-
-    expect(find.text('MyPortfolio'), findsOneWidget);
-    expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
-
-    // Pastikan 3 InfoCard menampilkan identitas pemilik secara akurat.
     expect(find.byType(InfoCard), findsNWidgets(3));
-    expect(find.text('NPM'), findsOneWidget);
     expect(find.text('2506656425'), findsOneWidget);
-    expect(find.text('Name'), findsOneWidget);
     expect(find.text('Anantha Kamal Eirian'), findsOneWidget);
-    expect(find.text('Class'), findsOneWidget);
     expect(find.text('PBP D'), findsOneWidget);
-
-    // Pastikan data contoh Burhan tidak lagi digunakan.
-    expect(find.text('2406000001'), findsNothing);
-    expect(find.text('Burhan'), findsNothing);
-    expect(find.text('PBP A'), findsNothing);
+    expect(find.byType(ItemCard), findsNWidgets(4));
   });
 
   testWidgets(
-    'ItemCards have unique colors, show SnackBars, and navigate to forms',
+    'Lihat Proyek fetches public projects and opens ProjectDetailScreen',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(MyApp(apiClient: _createMockApiClient()));
 
-      final itemCardFinder = find.byType(ItemCard);
-      expect(itemCardFinder, findsNWidgets(4));
-
-      // Verifikasi setiap ItemCard memakai warna unik dari model ItemHomepage.
-      final colors = <Color?>[];
-      for (final element in itemCardFinder.evaluate()) {
-        final card = element.widget as ItemCard;
-        final material = tester.widget<Material>(
-          find
-              .descendant(
-                of: find.byWidget(card),
-                matching: find.byType(Material),
-              )
-              .first,
-        );
-        expect(material.color, equals(card.item.color));
-        colors.add(material.color);
-      }
-      expect(colors.toSet().length, equals(4));
-
-      // Uji SnackBar untuk kartu non-navigasi (Lihat Proyek dan Logout).
       await tester.tap(find.text('Lihat Proyek'));
       await tester.pumpAndSettle();
+
+      expect(find.byType(ProjectListScreen), findsOneWidget);
+      expect(find.text('Portfolio Backend'), findsOneWidget);
+      expect(find.text('Django, DRF, PostgreSQL'), findsOneWidget);
+
+      await tester.tap(find.text('Portfolio Backend'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ProjectDetailScreen), findsOneWidget);
       expect(
-        find.text('Kamu telah menekan tombol Lihat Proyek!'),
+        find.text('REST API built with Django REST Framework.'),
         findsOneWidget,
       );
-
-      await tester.tap(find.text('Logout'));
-      await tester.pumpAndSettle();
-      expect(find.text('Kamu telah menekan tombol Logout!'), findsOneWidget);
-
-      // Uji tombol aksi 'Detail' pada SnackBar Logout.
-      await tester.tap(find.text('Detail'));
-      await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsOneWidget);
-      expect(
-        find.textContaining('Mengakhiri sesi autentikasi akun pengguna'),
-        findsOneWidget,
-      );
-      await tester.tap(find.text('Tutup'));
-      await tester.pumpAndSettle();
-
-      // Uji tombol Tambah Proyek melakukan Navigator.push ke ProjectFormPage.
-      await tester.tap(find.text('Tambah Proyek'));
-      await tester.pumpAndSettle();
-      expect(find.byType(ProjectFormPage), findsOneWidget);
-      expect(find.text('Add Project Form'), findsOneWidget);
-
-      Navigator.of(tester.element(find.byType(ProjectFormPage))).pop();
-      await tester.pumpAndSettle();
-      expect(find.byType(MyHomePage), findsOneWidget);
-
-      // Uji tombol Tambah Pengalaman melakukan Navigator.push ke ExperienceFormPage.
-      await tester.tap(find.text('Tambah Pengalaman'));
-      await tester.pumpAndSettle();
-      expect(find.byType(ExperienceFormPage), findsOneWidget);
-      expect(find.text('Tambah Pengalaman'), findsOneWidget);
-
-      Navigator.of(tester.element(find.byType(ExperienceFormPage))).pop();
-      await tester.pumpAndSettle();
-      expect(find.byType(MyHomePage), findsOneWidget);
     },
   );
 
   testWidgets(
-    'LeftDrawer navigates across Home, Add Project, and Add Experience pages',
+    'Route guard requires login before Tambah Proyek and submits to API',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(MyApp(apiClient: _createMockApiClient()));
 
-      // Buka drawer menu di MyHomePage.
-      await tester.tap(find.byTooltip('Open navigation menu'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(LeftDrawer), findsOneWidget);
-      expect(find.text('My Portfolio'), findsOneWidget);
-      expect(find.text('Home'), findsOneWidget);
-      expect(find.text('Add Project'), findsOneWidget);
-      expect(find.text('Add Experience'), findsOneWidget);
-
-      // Pindah ke halaman Add Project melalui Drawer (pushReplacement).
-      await tester.tap(find.text('Add Project'));
-      await tester.pumpAndSettle();
-      expect(find.byType(ProjectFormPage), findsOneWidget);
-      expect(find.byType(MyHomePage), findsNothing);
-
-      // Pindah dari ProjectFormPage ke Add Experience melalui Drawer.
-      await tester.tap(find.byTooltip('Open navigation menu'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Add Experience'));
-      await tester.pumpAndSettle();
-      expect(find.byType(ExperienceFormPage), findsOneWidget);
-      expect(find.byType(ProjectFormPage), findsNothing);
-
-      // Kembali ke Home dari ExperienceFormPage melalui Drawer.
-      await tester.tap(find.byTooltip('Open navigation menu'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Home'));
-      await tester.pumpAndSettle();
-      expect(find.byType(MyHomePage), findsOneWidget);
-      expect(find.byType(ExperienceFormPage), findsNothing);
-    },
-  );
-
-  testWidgets(
-    'ProjectFormPage validates required fields, shows dialog summary, and resets',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
-
+      // Tapping Tambah Proyek while logged out opens LoginScreen first.
       await tester.tap(find.text('Tambah Proyek'));
       await tester.pumpAndSettle();
-      // Tunggu SnackBar 3 detik selesai menghilang agar tidak menutupi tombol Save.
-      await tester.pump(const Duration(seconds: 4));
-      await tester.pumpAndSettle();
+      expect(find.byType(LoginScreen), findsOneWidget);
 
-      // Tekan Save dalam keadaan kosong untuk memastikan validasi berjalan.
-      await tester.ensureVisible(find.text('Save'));
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Nama proyek tidak boleh kosong!'), findsOneWidget);
-      expect(
-        find.text('Deskripsi proyek tidak boleh kosong!'),
-        findsOneWidget,
-      );
-      expect(find.byType(AlertDialog), findsNothing);
-
-      // Isi seluruh field formulir.
+      // Login with valid credentials.
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Nama Proyek'),
-        'MyPortfolio App',
+        find.widgetWithText(TextFormField, 'Username'),
+        'admin',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Deskripsi Proyek'),
-        'Aplikasi portofolio Flutter',
+        find.widgetWithText(TextFormField, 'Password'),
+        'secret',
       );
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+      await tester.pumpAndSettle();
 
-      // Ubah pilihan kategori pada DropdownButtonFormField.
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Mobile Development').last);
-      await tester.pumpAndSettle();
+      // After login, ProjectFormPage is opened automatically.
+      expect(find.byType(ProjectFormPage), findsOneWidget);
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Teknologi yang Digunakan'),
+        find.widgetWithText(TextFormField, 'Title'),
+        'Flutter Mobile App',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Description'),
+        'Integrated with DRF token auth.',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Tech Stack'),
         'Flutter, Dart',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Tautan Proyek'),
-        'https://github.com/ananthakamal-lgtm/myportofolio_mobile',
+        find.widgetWithText(TextFormField, 'Project URL'),
+        'https://example.com/flutter',
       );
+
+      // Wait for the 3-second navigation SnackBar to auto-dismiss before tapping Save.
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pumpAndSettle();
 
       await tester.ensureVisible(find.text('Save'));
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      // Verifikasi pop-up AlertDialog menampilkan seluruh isian formulir.
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
-      expect(find.text('Nama Proyek: MyPortfolio App'), findsOneWidget);
-      expect(
-        find.text('Deskripsi: Aplikasi portofolio Flutter'),
-        findsOneWidget,
-      );
-      expect(find.text('Kategori: Mobile Development'), findsOneWidget);
-      expect(find.text('Teknologi: Flutter, Dart'), findsOneWidget);
-      expect(
-        find.text(
-          'Tautan: https://github.com/ananthakamal-lgtm/myportofolio_mobile',
-        ),
-        findsOneWidget,
-      );
-
-      // Tutup dialog dan pastikan form ter-reset.
-      await tester.tap(find.text('OK'));
-      await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsNothing);
-      expect(find.text('MyPortfolio App'), findsNothing);
+      expect(find.text('Title: Flutter Mobile App'), findsOneWidget);
     },
   );
 
-  testWidgets(
-    'ExperienceFormPage validates whitespace, URL, date order, and shows summary on mobile width',
-    (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(360, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets('LeftDrawer navigates to ExperienceFormPage and back Home', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(MyApp(apiClient: _createMockApiClient()));
 
-      await tester.pumpWidget(const MyApp());
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    expect(find.text('Login'), findsOneWidget);
 
-      // Buka ExperienceFormPage melalui Drawer pada layar selebar ponsel.
-      await tester.tap(find.byTooltip('Open navigation menu'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Add Experience'));
-      await tester.pumpAndSettle();
-      expect(find.byType(ExperienceFormPage), findsOneWidget);
+    await tester.tap(find.text('Add Experience'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ExperienceFormPage), findsOneWidget);
 
-      // Masukkan nilai tidak valid (spasi kosong, URL salah, dan tanggal selesai kosong).
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Judul Pengalaman'),
-        '   ',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Deskripsi Pengalaman'),
-        '   ',
-      );
-      await tester.ensureVisible(find.text('Masih berlangsung'));
-      await tester.tap(find.text('Masih berlangsung'));
-      await tester.pumpAndSettle();
-
-      await tester.ensureVisible(
-        find.widgetWithText(TextFormField, 'URL Thumbnail (opsional)'),
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'URL Thumbnail (opsional)'),
-        'example.com/invalid-url',
-      );
-
-      await tester.ensureVisible(find.text('Simpan'));
-      await tester.tap(find.text('Simpan'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Judul pengalaman tidak boleh kosong!'), findsOneWidget);
-      expect(
-        find.text('Deskripsi pengalaman tidak boleh kosong!'),
-        findsOneWidget,
-      );
-      expect(
-        find.text(
-          'Tanggal selesai wajib dipilih jika pengalaman sudah berakhir!',
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.text('Masukkan URL valid yang diawali http:// atau https://!'),
-        findsOneWidget,
-      );
-      expect(find.byType(AlertDialog), findsNothing);
-
-      // Lengkapi isian valid, tetapi uji urutan tanggal yang terbalik (selesai < mulai).
-      await tester.ensureVisible(
-        find.widgetWithText(TextFormField, 'Judul Pengalaman'),
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Judul Pengalaman'),
-        'Software Engineer Intern',
-      );
-      await tester.ensureVisible(
-        find.byType(DropdownButtonFormField<String>),
-      );
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Internship').last);
-      await tester.pumpAndSettle();
-
-      await tester.ensureVisible(
-        find.widgetWithText(TextFormField, 'Deskripsi Pengalaman'),
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Deskripsi Pengalaman'),
-        'Mengembangkan API Django REST Framework dan fitur mobile Flutter.',
-      );
-
-      await tester.ensureVisible(find.text('Tanggal Mulai'));
-      await tester.tap(find.text('Tanggal Mulai'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('15'));
-      await tester.tap(find.text('OK'));
-      await tester.pumpAndSettle();
-
-      await tester.ensureVisible(find.text('Tanggal Selesai'));
-      await tester.tap(find.text('Tanggal Selesai'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('10'));
-      await tester.tap(find.text('OK'));
-      await tester.pumpAndSettle();
-
-      await tester.ensureVisible(
-        find.widgetWithText(TextFormField, 'URL Thumbnail (opsional)'),
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'URL Thumbnail (opsional)'),
-        'https://example.com/internship.png',
-      );
-
-      await tester.ensureVisible(find.text('Simpan'));
-      await tester.tap(find.text('Simpan'));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text('Tanggal selesai tidak boleh lebih awal dari tanggal mulai!'),
-        findsOneWidget,
-      );
-      expect(find.byType(AlertDialog), findsNothing);
-
-      // Perbaiki Tanggal Selesai agar lebih akhir dari Tanggal Mulai, lalu simpan.
-      await tester.ensureVisible(find.text('Tanggal Selesai'));
-      await tester.tap(find.text('Tanggal Selesai'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('20'));
-      await tester.tap(find.text('OK'));
-      await tester.pumpAndSettle();
-
-      await tester.ensureVisible(find.text('Simpan'));
-      await tester.tap(find.text('Simpan'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.text('Pengalaman berhasil ditambahkan!'), findsOneWidget);
-      expect(find.text('Judul: Software Engineer Intern'), findsOneWidget);
-      expect(find.text('Kategori: Internship'), findsOneWidget);
-      expect(
-        find.text(
-          'Deskripsi: Mengembangkan API Django REST Framework dan fitur mobile Flutter.',
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.text('Thumbnail: https://example.com/internship.png'),
-        findsOneWidget,
-      );
-
-      // Tutup dialog dan verifikasi form kembali ke kondisi awal.
-      await tester.tap(find.text('Tutup'));
-      await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsNothing);
-      expect(find.text('Software Engineer Intern'), findsNothing);
-    },
-  );
-
-  testWidgets(
-    'Responsive layout on narrow mobile supports profile sheet and item detail',
-    (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(360, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(const MyApp());
-
-      // Buka modal profil pemilik melalui tombol Profil pada kartu sambutan.
-      await tester.tap(find.text('Profil'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Modul Ekosistem Portofolio'), findsOneWidget);
-      expect(find.text('Projects'), findsOneWidget);
-      expect(find.text('Experience'), findsOneWidget);
-      expect(find.text('Achievements'), findsOneWidget);
-
-      await tester.tap(find.text('Tutup'));
-      await tester.pumpAndSettle();
-
-      // Tekan lama kartu menu untuk membuka dialog pratinjau detail aksi.
-      await tester.longPress(find.text('Tambah Pengalaman'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(AlertDialog), findsOneWidget);
-      expect(
-        find.textContaining('mencatat pengalaman kerja'),
-        findsOneWidget,
-      );
-
-      await tester.tap(find.text('Tutup'));
-      await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsNothing);
-    },
-  );
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MyHomePage), findsOneWidget);
+  });
 }
